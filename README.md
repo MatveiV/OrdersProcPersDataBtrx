@@ -221,66 +221,64 @@ npm start
 
 ## Архитектура (C4)
 
-Ниже — три уровня модели C4 в нотации Mermaid. Диаграммы отображаются в GitHub, VS Code и других просмотрщиках с поддержкой Mermaid.
+Ниже — три уровня модели C4. Диаграммы собраны на стандартных Mermaid-флоучартах с группировкой через `subgraph`, поэтому корректно отображаются на GitHub, в VS Code и других просмотрщиках с поддержкой Mermaid.
 
 ### Уровень 1 — контекст системы
 
 ```mermaid
-C4Context
-  title Контекст: AI-помощник по входящим заявкам
+flowchart LR
+    manager["Менеджер отдела продаж<br/>Читает заявки и принимает решения"]
+    app["AI-помощник по заявкам<br/>Разбирает текст заявки, квалифицирует лид и готовит черновик ответа"]
+    gigachat["GigaChat API<br/>Внешняя LLM-платформа Сбера"]
 
-  Person(manager, "Менеджер отдела продаж", "Читает заявки и принимает решения")
-  System(app, "AI-помощник по заявкам", "Разбирает текст заявки, квалифицирует лид и готовит черновик ответа")
-  System_Ext(gigachat, "GigaChat API", "Внешняя LLM-платформа Сбера")
-
-  Rel(manager, app, "Вводит текст заявки, получает карточку", "HTTPS / localhost")
-  Rel(app, gigachat, "Запрашивает анализ текста", "HTTPS / REST")
+    manager -->|"Вводит текст заявки, получает карточку<br/>HTTPS / localhost"| app
+    app -->|"Запрашивает анализ текста<br/>HTTPS / REST"| gigachat
 ```
 
 ### Уровень 2 — контейнеры
 
 ```mermaid
-C4Container
-  title Контейнеры: AI-помощник по заявкам
+flowchart LR
+    manager["Менеджер отдела продаж<br/>Пользователь приложения"]
 
-  Person(manager, "Менеджер отдела продаж", "Пользователь приложения")
-  Container(web, "Веб-интерфейс", "HTML, CSS, JavaScript", "Одна страница: ввод заявки, кнопки тестовых заявок, карточка результата")
-  Container(server, "Сервер приложения", "Node.js 22, node:http", "Отдаёт статику и обрабатывает POST /api/analyze")
-  Container(config, "Конфигурация", "Файл .env", "Ключ GigaChat, scope, модель, порт")
-  System_Ext(gigachat, "GigaChat API", "Авторизация и генерация ответа")
+    subgraph app["AI-помощник по заявкам"]
+        web["Веб-интерфейс<br/>HTML, CSS, JavaScript<br/>Ввод заявки, кнопки тестовых заявок, карточка результата"]
+        server["Сервер приложения<br/>Node.js 22, node:http<br/>Статика и POST /api/analyze"]
+        config["Конфигурация<br/>Файл .env<br/>Ключ GigaChat, scope, модель, порт"]
+    end
 
-  Rel(manager, web, "Открывает в браузере", "HTTP")
-  Rel(web, server, "Отправляет текст заявки", "JSON / HTTP")
-  Rel(server, config, "Читает настройки при старте")
-  Rel(server, gigachat, "OAuth 2.0 и chat/completions", "HTTPS / REST")
+    gigachat["GigaChat API<br/>Авторизация и генерация ответа"]
+
+    manager -->|"Открывает в браузере<br/>HTTP"| web
+    web -->|"Отправляет текст заявки<br/>JSON / HTTP"| server
+    server -->|"Читает настройки при старте"| config
+    server -->|"OAuth 2.0 и chat/completions<br/>HTTPS / REST"| gigachat
 ```
 
 ### Уровень 3 — компоненты сервера
 
 ```mermaid
-C4Component
-  title Компоненты: сервер приложения
+flowchart LR
+    web["Веб-интерфейс<br/>HTML, CSS, JavaScript"]
+    config["Конфигурация<br/>Файл .env"]
+    gigachat["GigaChat API<br/>LLM-платформа Сбера"]
 
-  Container(web, "Веб-интерфейс", "HTML, CSS, JavaScript")
-  Container(config, "Конфигурация", "Файл .env")
-  System_Ext(gigachat, "GigaChat API", "LLM-платформа Сбера")
+    subgraph server["Сервер приложения (Node.js)"]
+        http["HTTP-маршрутизация<br/>server.js<br/>Статика, /api/health, /api/analyze"]
+        validation["Валидация запроса<br/>server.js<br/>JSON, пустой текст, длина до 5000 символов"]
+        orchestrator["Оркестратор анализа<br/>gigachat.js<br/>Токен, повторные попытки, сборка результата"]
+        prompt["Промпт и JSON-схема<br/>prompt.js<br/>Правила квалификации и структура ответа"]
+        normalizer["Нормализатор ответа<br/>gigachat.js<br/>Поля, «не указано», очистка черновика"]
+    end
 
-  Container_Boundary(server, "Сервер приложения (Node.js)") {
-    Component(http, "HTTP-маршрутизация", "server.js", "Статика, /api/health, /api/analyze")
-    Component(validation, "Валидация запроса", "server.js", "Проверка JSON, пустого текста и длины до 5000 символов")
-    Component(orchestrator, "Оркестратор анализа", "gigachat.js", "Токен, повторные попытки, сборка результата")
-    Component(prompt, "Промпт и JSON-схема", "prompt.js", "Правила квалификации и структура ответа")
-    Component(normalizer, "Нормализатор ответа", "gigachat.js", "Приведение полей, «не указано», очистка черновика")
-  }
-
-  Rel(web, http, "POST /api/analyze", "JSON")
-  Rel(http, validation, "Передаёт текст заявки")
-  Rel(validation, orchestrator, "Вызывает analyzeLead()")
-  Rel(orchestrator, prompt, "Берёт промпт и схему")
-  Rel(orchestrator, gigachat, "Запрашивает структурированный ответ", "HTTPS / REST")
-  Rel(orchestrator, normalizer, "Проверяет и нормализует JSON")
-  Rel(orchestrator, config, "Читает ключ и модель")
-  Rel(orchestrator, web, "Возвращает карточку результата", "JSON")
+    web -->|"POST /api/analyze<br/>JSON"| http
+    http -->|"Передаёт текст заявки"| validation
+    validation -->|"Вызывает analyzeLead()"| orchestrator
+    orchestrator -->|"Берёт промпт и схему"| prompt
+    orchestrator -->|"Запрашивает структурированный ответ<br/>HTTPS / REST"| gigachat
+    orchestrator -->|"Проверяет и нормализует JSON"| normalizer
+    orchestrator -->|"Читает ключ и модель"| config
+    orchestrator -->|"Возвращает карточку результата<br/>JSON"| web
 ```
 
 ### Поток обработки заявки
