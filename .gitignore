@@ -1,0 +1,12 @@
+# Секреты — никогда не попадают в git
+.env
+.env.local
+
+# Служебные папки
+node_modules/
+logs/
+*.log
+
+# Системный мусор
+.DS_Store
+Thumbs.db

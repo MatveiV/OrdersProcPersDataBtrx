@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI-помощник по входящим заявкам</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%234f46e5'/%3E%3Cpath d='M30 62V38h10v16h20V38h10v24H30z' fill='white'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-badge">MVP · GigaChat API</div>
+      <h1>AI-помощник по входящим заявкам</h1>
+      <p class="hero-sub">
+        Вставьте текст заявки — сервис выделит ключевые данные, определит тип лида
+        и подготовит черновик ответа. Все данные синтетические.
+      </p>
+    </header>
+
+    <main class="layout">
+      <section class="card input-card" aria-labelledby="input-title">
+        <div class="card-head">
+          <h2 id="input-title">Текст заявки</h2>
+          <span id="charCount" class="counter">0 / 5000</span>
+        </div>
+
+        <label class="sr-only" for="requestText">Текст входящей заявки</label>
+        <textarea
+          id="requestText"
+          maxlength="5000"
+          spellcheck="true"
+          placeholder="Например: Здравствуйте! Мы переезжаем в новый офис и хотим заказать столы, кресла и шкафы. Пришлите, пожалуйста, коммерческое предложение."
+        ></textarea>
+
+        <div class="samples" aria-label="Тестовые заявки">
+          <span class="samples-label">Тестовые заявки:</span>
+          <button type="button" class="chip" data-sample="0">Полная</button>
+          <button type="button" class="chip" data-sample="1">Неполная</button>
+          <button type="button" class="chip" data-sample="2">Конфликтная</button>
+        </div>
+
+        <div class="samples samples-secondary" aria-label="Дополнительные тестовые заявки">
+          <span class="samples-label">Дополнительно:</span>
+          <button type="button" class="chip" data-sample="3">Идеальный плюс</button>
+          <button type="button" class="chip" data-sample="4">Идеальный минус</button>
+          <button type="button" class="chip" data-sample="5">Средний вариант</button>
+        </div>
+
+        <div class="actions">
+          <button id="submitBtn" class="primary" type="button">
+            <span class="primary-label">Обработать</span>
+          </button>
+          <span class="hint">Ctrl + Enter — быстрый запуск</span>
+        </div>
+
+        <div id="status" class="status hidden" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="statusText">Анализируем заявку…</span>
+        </div>
+
+        <div id="error" class="error hidden" role="alert">
+          <div class="error-title">
+            <span class="error-icon" aria-hidden="true">!</span>
+            <strong>Не получилось обработать заявку</strong>
+          </div>
+          <p id="errorMessage" class="error-message"></p>
+          <p id="errorHint" class="error-hint"></p>
+        </div>
+      </section>
+
+      <section id="result" class="card result hidden" aria-labelledby="result-title" aria-live="polite">
+        <div class="result-head">
+          <div>
+            <h2 id="result-title">Результат обработки</h2>
+            <p id="resultMeta" class="meta"></p>
+          </div>
+          <div class="badges">
+            <span id="leadTypeBadge" class="badge"></span>
+            <span id="humanBadge" class="badge"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">Компания</div>
+          <div id="company" class="value"></div>
+        </div>
+
+        <div class="field">
+          <div class="label">Суть запроса</div>
+          <div id="summary" class="value"></div>
+        </div>
+
+        <div id="keyDataField" class="field">
+          <div class="label">Известные данные</div>
+          <div id="keyData" class="key-grid"></div>
+        </div>
+
+        <div class="field">
+          <div class="label">Чего не хватает</div>
+          <ul id="missingData" class="missing"></ul>
+        </div>
+
+        <div class="field">
+          <div class="label">Следующий шаг</div>
+          <div id="nextStep" class="value"></div>
+        </div>
+
+        <div class="field">
+          <div class="label label-with-action">
+            <span>Черновик ответа</span>
+            <button id="copyBtn" class="copy" type="button">Копировать</button>
+          </div>
+          <div id="replyDraft" class="draft"></div>
+        </div>
+
+        <div id="humanBox" class="human-box hidden">
+          <div class="label">Причина передачи человеку</div>
+          <div id="humanReason" class="value"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Учебный MVP. Секреты хранятся только в файле <code>.env</code> на сервере и не передаются в браузер.
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

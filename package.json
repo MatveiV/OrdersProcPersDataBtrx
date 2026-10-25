@@ -1,0 +1,18 @@
+{
+  "name": "gigachat-lead-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MVP AI-помощника для первичной обработки входящих заявок на GigaChat API",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MatveiV/OrdersProcessorAI.git"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  }
+}
