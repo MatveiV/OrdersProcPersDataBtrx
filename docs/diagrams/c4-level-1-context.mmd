@@ -1,0 +1,8 @@
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart LR
+    manager["Менеджер отдела продаж"]
+    app["AI-помощник по заявкам"]
+    gigachat["GigaChat API<br/>внешняя LLM-платформа"]
+
+    manager -->|"Текст заявки"| app
+    app -->|"Запрос анализа"| gigachat

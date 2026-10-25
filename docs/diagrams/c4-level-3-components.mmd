@@ -1,0 +1,23 @@
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TB
+    web["Веб-интерфейс"]
+    config["Конфигурация .env"]
+    gigachat["GigaChat API"]
+
+    subgraph server["Сервер Node.js"]
+        direction LR
+        http["HTTP"]
+        validation["Валидация"]
+        orchestrator["Оркестратор"]
+        prompt["Промпт"]
+        normalizer["Нормализатор"]
+    end
+
+    web -->|"POST /api/analyze"| http
+    http -->|"текст заявки"| validation
+    validation -->|"analyzeLead()"| orchestrator
+    orchestrator -->|"промпт"| prompt
+    orchestrator -->|"запрос"| gigachat
+    orchestrator -->|"нормализация"| normalizer
+    orchestrator -->|"ключ и модель"| config
+    orchestrator -->|"карточка"| web

@@ -20,6 +20,7 @@ AI-помощник по входящим заявкам: вставляете �
 - [docs/TEST_REPORT.md](docs/TEST_REPORT.md) — отчёт по шести тестовым сценариям.
 - [docs/CORRECTIONS.md](docs/CORRECTIONS.md) — три корректировки, скриншоты «до/после» и повторная проверка.
 - [docs/CorrectionsExamples.md](docs/CorrectionsExamples.md) — примеры точечных корректировок.
+- [docs/diagrams](docs/diagrams) — диаграммы C4 в PNG/SVG и их Mermaid-исходники.
 - [TestOrders.md](TestOrders.md) — исходная таблица ожидаемых результатов.
 
 ---
@@ -221,65 +222,19 @@ npm start
 
 ## Архитектура (C4)
 
-Ниже — три уровня модели C4. Диаграммы собраны на стандартных Mermaid-флоучартах с группировкой через `subgraph`, поэтому корректно отображаются на GitHub, в VS Code и других просмотрщиках с поддержкой Mermaid.
+Ниже — три уровня модели C4. В README вставлены PNG-версии, поэтому схемы не зависят от встроенного Mermaid-рендерера GitHub и одинаково отображаются в браузере. Исходники Mermaid и SVG-версии лежат в папке [`docs/diagrams`](docs/diagrams): [`уровень 1`](docs/diagrams/c4-level-1-context.mmd), [`уровень 2`](docs/diagrams/c4-level-2-containers.mmd), [`уровень 3`](docs/diagrams/c4-level-3-components.mmd).
 
 ### Уровень 1 — контекст системы
 
-```mermaid
-flowchart LR
-    manager["Менеджер отдела продаж<br/>Читает заявки и принимает решения"]
-    app["AI-помощник по заявкам<br/>Разбирает текст заявки, квалифицирует лид и готовит черновик ответа"]
-    gigachat["GigaChat API<br/>Внешняя LLM-платформа Сбера"]
-
-    manager -->|"Вводит текст заявки, получает карточку<br/>HTTPS / localhost"| app
-    app -->|"Запрашивает анализ текста<br/>HTTPS / REST"| gigachat
-```
+![Контекст системы: менеджер, AI-помощник и GigaChat API](docs/diagrams/c4-level-1-context.png)
 
 ### Уровень 2 — контейнеры
 
-```mermaid
-flowchart LR
-    manager["Менеджер отдела продаж<br/>Пользователь приложения"]
-
-    subgraph app["AI-помощник по заявкам"]
-        web["Веб-интерфейс<br/>HTML, CSS, JavaScript<br/>Ввод заявки, кнопки тестовых заявок, карточка результата"]
-        server["Сервер приложения<br/>Node.js 22, node:http<br/>Статика и POST /api/analyze"]
-        config["Конфигурация<br/>Файл .env<br/>Ключ GigaChat, scope, модель, порт"]
-    end
-
-    gigachat["GigaChat API<br/>Авторизация и генерация ответа"]
-
-    manager -->|"Открывает в браузере<br/>HTTP"| web
-    web -->|"Отправляет текст заявки<br/>JSON / HTTP"| server
-    server -->|"Читает настройки при старте"| config
-    server -->|"OAuth 2.0 и chat/completions<br/>HTTPS / REST"| gigachat
-```
+![Контейнеры: веб-интерфейс, сервер Node.js, конфигурация и GigaChat API](docs/diagrams/c4-level-2-containers.png)
 
 ### Уровень 3 — компоненты сервера
 
-```mermaid
-flowchart LR
-    web["Веб-интерфейс<br/>HTML, CSS, JavaScript"]
-    config["Конфигурация<br/>Файл .env"]
-    gigachat["GigaChat API<br/>LLM-платформа Сбера"]
-
-    subgraph server["Сервер приложения (Node.js)"]
-        http["HTTP-маршрутизация<br/>server.js<br/>Статика, /api/health, /api/analyze"]
-        validation["Валидация запроса<br/>server.js<br/>JSON, пустой текст, длина до 5000 символов"]
-        orchestrator["Оркестратор анализа<br/>gigachat.js<br/>Токен, повторные попытки, сборка результата"]
-        prompt["Промпт и JSON-схема<br/>prompt.js<br/>Правила квалификации и структура ответа"]
-        normalizer["Нормализатор ответа<br/>gigachat.js<br/>Поля, «не указано», очистка черновика"]
-    end
-
-    web -->|"POST /api/analyze<br/>JSON"| http
-    http -->|"Передаёт текст заявки"| validation
-    validation -->|"Вызывает analyzeLead()"| orchestrator
-    orchestrator -->|"Берёт промпт и схему"| prompt
-    orchestrator -->|"Запрашивает структурированный ответ<br/>HTTPS / REST"| gigachat
-    orchestrator -->|"Проверяет и нормализует JSON"| normalizer
-    orchestrator -->|"Читает ключ и модель"| config
-    orchestrator -->|"Возвращает карточку результата<br/>JSON"| web
-```
+![Компоненты сервера: маршрутизация, валидация, оркестратор, промпт и нормализатор](docs/diagrams/c4-level-3-components.png)
 
 ### Поток обработки заявки
 
@@ -347,7 +302,8 @@ OrdersProcessorAI\
 ├─ docs\
 │  ├─ TEST_REPORT.md — подробный отчёт о тестировании
 │  ├─ CORRECTIONS.md — тексты корректировок и результаты повторной проверки
-│  └─ CorrectionsExamples.md — примеры точечных корректировок
+│  ├─ CorrectionsExamples.md — примеры точечных корректировок
+│  └─ diagrams\     — диаграммы C4 (PNG/SVG) и их Mermaid-исходники
 ├─ certs\           — сертификаты Минцифры для защищённого соединения
 ├─ TestOrders.md    — исходная таблица ожидаемых результатов
 ├─ InitialPrompt_AIOrderProcessor_MVP.md — исходное задание на MVP

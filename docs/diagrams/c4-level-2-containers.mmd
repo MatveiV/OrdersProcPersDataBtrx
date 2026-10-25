@@ -1,0 +1,17 @@
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TB
+    manager["Менеджер отдела продаж"]
+
+    subgraph app["AI-помощник по заявкам"]
+        direction LR
+        web["Веб-интерфейс<br/>HTML, CSS, JS"]
+        server["Сервер Node.js<br/>HTTP API"]
+        config["Конфигурация<br/>.env"]
+    end
+
+    gigachat["GigaChat API"]
+
+    manager -->|"Открывает сайт"| web
+    web -->|"POST /api/analyze"| server
+    server -->|"Читает настройки"| config
+    server -->|"OAuth и запрос"| gigachat
