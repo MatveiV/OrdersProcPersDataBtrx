@@ -6,7 +6,7 @@
   "main": "server.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MatveiV/OrdersProcessorAI.git"
+    "url": "https://github.com/MatveiV/OrdersProcPersDataBtrx.git"
   },
   "license": "Apache-2.0",
   "scripts": {

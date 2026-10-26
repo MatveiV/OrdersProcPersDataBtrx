@@ -1,6 +1,6 @@
 # AI-помощник по входящим заявкам
 
-**Репозиторий:** [github.com/MatveiV/OrdersProcessorAI](https://github.com/MatveiV/OrdersProcessorAI)
+**Репозиторий:** [github.com/MatveiV/OrdersProcPersDataBtrx](https://github.com/MatveiV/OrdersProcPersDataBtrx)
 
 AI-помощник по входящим заявкам: заполняете форму заявки — приложение обезличивает персональные данные, разбирает обращение с помощью **GigaChat API**, показывает карточку с ключевыми сведениями, типом лида и черновиком ответа клиенту.
 
@@ -49,8 +49,8 @@ AI-помощник по входящим заявкам: заполняете �
 Склонируйте репозиторий и перейдите в папку проекта:
 
 ```
-git clone https://github.com/MatveiV/OrdersProcessorAI.git
-cd OrdersProcessorAI
+git clone https://github.com/MatveiV/OrdersProcPersDataBtrx.git
+cd OrdersProcPersDataBtrx
 ```
 
 Если Git не установлен, скачайте архив репозитория через кнопку **Code → Download ZIP** и распакуйте его. Дальше выполните шаги 1–3: получите ключ, заполните `.env` и запустите `start.bat` или `npm start`.
@@ -86,7 +86,7 @@ cd OrdersProcessorAI
 
 ## Шаг 2. Вставьте ключ в файл `.env`
 
-1. Откройте папку проекта (например, `C:\GitHub\OrdersProcessorAI` или папку, куда вы клонировали репозиторий).
+1. Откройте папку проекта (например, `C:\GitHub\OrdersProcPersDataBtrx` или папку, куда вы клонировали репозиторий).
 2. Если файла **`.env`** ещё нет, скопируйте `.env.example` в `.env`. Откройте `.env` Блокнотом: правый клик → **Открыть с помощью** → **Блокнот**.
 3. В строке `GIGACHAT_AUTHORIZATION_KEY=` вставьте ключ **сразу после знака равенства**, без пробелов и кавычек:
 
@@ -523,7 +523,7 @@ GigaChat API использует сертификаты НУЦ Минцифры
 ## Структура проекта
 
 ```
-OrdersProcessorAI\
+OrdersProcPersDataBtrx\
 ├─ server.js        — веб-сервер и API-маршрут /api/analyze
 ├─ gigachat.js      — авторизация в GigaChat, запрос к модели, проверка ответа
 ├─ privacy.js       — обезличивание персональных данных и восстановление значений
