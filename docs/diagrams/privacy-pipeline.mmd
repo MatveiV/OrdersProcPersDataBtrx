@@ -1,0 +1,19 @@
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart LR
+    input["Текст заявки и поля формы"]
+    detectors["Детекторы<br/>ФИО и фамилия, телефон, e-mail,<br/>ИНН, ОГРН, КПП, расчётный счёт,<br/>адрес, компания"]
+    tokens["Текст с токенами<br/>[ИМЯ_1], [ИНН_1], [СЧЁТ_1]…"]
+    gigachat["GigaChat API<br/>видит только токены"]
+    restore["Восстановление<br/>реальных значений"]
+    card["Карточка результата<br/>и сделка в Битрикс24"]
+    stats["Счётчики замен<br/>по типам"]
+    csv["logs/anonymization.csv<br/>без персональных данных"]
+
+    input --> detectors
+    detectors --> tokens
+    tokens --> gigachat
+    gigachat --> restore
+    restore --> card
+    detectors --> stats
+    stats --> csv
+    csv -.->|"скачать CSV"| card

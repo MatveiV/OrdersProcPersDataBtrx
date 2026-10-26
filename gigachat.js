@@ -441,6 +441,15 @@ function normalizeKeyData(value) {
   return result;
 }
 
+function capitalizeSentences(text) {
+  // Поднимаем регистр первой буквы текста и первой буквы после . ! ? и перевода строки.
+  // Аббревиатуры и контакты не затрагиваем: меняются только строчные буквы.
+  return String(text || '').replace(
+    /(^|[.!?…]\s+|\n\s*)([а-яёa-z])/g,
+    (match, prefix, letter) => `${prefix}${letter.toUpperCase()}`
+  );
+}
+
 function sanitizeReply(text) {
   let result = String(text || '').trim();
   if (!result) return result;
@@ -462,12 +471,14 @@ function sanitizeReply(text) {
     result = before + after.replace(/,?\s*пожалуйста,?/gi, '');
   }
 
-  return result
+  result = result
     .replace(/\s+([.,!?;:])/g, '$1')
     .replace(/([.,!?;:])\1+/g, '$1')
     .replace(/[ \t]{2,}/g, ' ')
     .replace(/\s+\n/g, '\n')
     .trim();
+
+  return capitalizeSentences(result);
 }
 
 const MISSING_LABELS = {
@@ -572,6 +583,19 @@ function ensureImportantMissing(missing, keyData, leadType, needsHuman) {
     result.push(label);
   }
 
+  // «Несколько штук», «пара», «много» — не точное количество:
+  // без него нельзя рассчитать стоимость, поэтому просим уточнить.
+  const quantity = String(keyData.quantity || '').trim();
+  const vagueQuantity =
+    !quantity ||
+    quantity === NOT_SPECIFIED ||
+    /^(несколько|пара|много|немало|немного|штук)\b/i.test(quantity) ||
+    !/\d/.test(quantity);
+
+  if (vagueQuantity && !result.some((item) => item.toLowerCase().includes('количеств'))) {
+    result.push('точное количество');
+  }
+
   return result;
 }
 
@@ -597,21 +621,47 @@ function ensureClarifyingQuestions(reply, missing, leadType, needsHuman) {
   return `${String(reply || '').trim()} ${question}`.trim();
 }
 
+// Как пункт missing_data может быть назван в next_step: слева — что ищем
+// в missing_data, справа — допустимые формулировки в следующем шаге.
+const NEXT_STEP_SYNONYMS = [
+  [/бюджет/i, /бюджет/i],
+  [/срок/i, /срок|к какому|когда|дата/i],
+  [/количеств/i, /колич/i],
+  [/контактное лицо|имя/i, /контактн|лицо|имя/i],
+  [/контакт/i, /контакт|связ|телефон|почт|e-?mail/i],
+  [/компани/i, /компани/i],
+  [/адрес/i, /адрес/i],
+  [/продукт|товар/i, /продукт|товар|мебел/i]
+];
+
+function isMentionedInNextStep(nextStep, item) {
+  const text = String(nextStep || '').toLowerCase();
+  const key = String(item || '').toLowerCase();
+
+  for (const [itemRe, textRe] of NEXT_STEP_SYNONYMS) {
+    if (itemRe.test(key)) return textRe.test(text);
+  }
+
+  return text.includes(key);
+}
+
+function joinRu(items) {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} и ${items[items.length - 1]}`;
+}
+
 function ensureNextStepClarifications(nextStep, missing, leadType, needsHuman) {
   if (leadType !== 'целевой' || needsHuman || !missing.length) return nextStep;
 
-  const asks = [];
-  const hasBudget = missing.some((item) => item.toLowerCase().includes('бюджет'));
-  const hasDeadline = missing.some((item) => item.toLowerCase().includes('срок'));
-
-  if (hasBudget && !/бюджет/i.test(nextStep)) asks.push('бюджет');
-  if (hasDeadline && !/срок/i.test(nextStep)) asks.push('сроки');
-
-  if (!asks.length) return nextStep;
+  // Модель может перечислить в next_step только бюджет и сроки, забыв
+  // «точное количество», контакт или другие пункты missing_data.
+  // Дополняем шаг всем, что осталось не названным.
+  const unmentioned = missing.filter((item) => !isMentionedInNextStep(nextStep, item));
+  if (!unmentioned.length) return nextStep;
 
   const base = String(nextStep || '').trim().replace(/[.!?]+$/, '');
-  if (/^уточнить/i.test(base)) return `${base}, а также ${asks.join(' и ')}.`;
-  return `Уточнить у клиента ${asks.join(' и ')}.`;
+  if (/^уточнить/i.test(base)) return `${base}, а также ${joinRu(unmentioned)}.`;
+  return `Уточнить у клиента ${joinRu(unmentioned)}.`;
 }
 
 function normalizeResult(raw) {
@@ -673,13 +723,20 @@ function normalizeResult(raw) {
   const nextStep = ensureNextStepClarifications(rawNextStep, missingData, leadType, needsHuman);
   const replyDraft = ensureClarifyingQuestions(rawReplyDraft, missingData, leadType, needsHuman);
 
+  // Нецелевой запрос не передаётся в работу: не выдумываем отделы и процессы,
+  // которых может не быть в компании.
+  const finalNextStep =
+    leadType === 'нецелевой'
+      ? 'Ответить вежливым отказом и не передавать заявку в работу.'
+      : nextStep;
+
   return {
     company: asNotSpecified(raw.company) === NOT_SPECIFIED ? keyData.company : asNotSpecified(raw.company),
     summary,
     lead_type: leadType,
     key_data: keyData,
     missing_data: missingData,
-    next_step: nextStep,
+    next_step: finalNextStep,
     reply_draft: sanitizeReply(replyDraft),
     needs_human: needsHuman,
     human_reason: humanReason
@@ -749,6 +806,9 @@ async function analyzeLead(text) {
 module.exports = {
   analyzeLead,
   GigaChatError,
+  capitalizeSentences,
   isConfigured,
-  publicConfig
+  normalizeResult,
+  publicConfig,
+  sanitizeReply
 };

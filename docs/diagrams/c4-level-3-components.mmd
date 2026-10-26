@@ -1,23 +1,33 @@
 %%{init: {"flowchart": {"htmlLabels": false}}}%%
-flowchart TB
+flowchart LR
     web["Веб-интерфейс"]
     config["Конфигурация .env"]
     gigachat["GigaChat API"]
+    b24["Битрикс24"]
 
     subgraph server["Сервер Node.js"]
-        direction LR
-        http["HTTP"]
-        validation["Валидация"]
-        orchestrator["Оркестратор"]
-        prompt["Промпт"]
-        normalizer["Нормализатор"]
+        direction TB
+        http["HTTP-маршрут<br/>POST /api/analyze"]
+        validation["Валидация формы<br/>lead-input.js"]
+        privacy["Обезличивание<br/>privacy.js"]
+        orchestrator["Оркестратор<br/>gigachat.js"]
+        prompt["Промпт и JSON-схема<br/>prompt.js"]
+        normalizer["Нормализатор ответа"]
+        bitrix["Интеграция CRM<br/>bitrix.js"]
+        logger["Журнал анонимизации<br/>privacy-log.js"]
+        setup["Настройка полей<br/>scripts/b24-setup.js"]
     end
 
-    web -->|"POST /api/analyze"| http
-    http -->|"текст заявки"| validation
-    validation -->|"analyzeLead()"| orchestrator
+    config -->|"ключ и модель"| orchestrator
+    web -->|"поля формы, флаг b24"| http
+    http -->|"поля формы"| validation
+    validation -->|"текст заявки"| privacy
+    privacy -->|"токены"| orchestrator
     orchestrator -->|"промпт"| prompt
-    orchestrator -->|"запрос"| gigachat
     orchestrator -->|"нормализация"| normalizer
-    orchestrator -->|"ключ и модель"| config
-    orchestrator -->|"карточка"| web
+    orchestrator -->|"OAuth и запрос"| gigachat
+    http -->|"восстановленный результат"| bitrix
+    bitrix -->|"REST"| b24
+    http -->|"счётчики замен"| logger
+    setup -->|"16 UF-полей сделки"| b24
+    http -->|"карточка и meta.b24"| web

@@ -1,0 +1,17 @@
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+    start["Заявка обработана ИИ"] --> type{"Тип лида"}
+
+    type -->|"целевой"| target["Данные заказа<br/>в UF-поля сделки"]
+    type -->|"нецелевой"| nonTarget["Тип «нецелевой»<br/>вежливый отказ"]
+    type -->|"неясно"| unclear["Тип «неясно»<br/>например, жалоба"]
+
+    target --> human{"needs_human?"}
+    nonTarget --> human
+    unclear --> human
+
+    human -->|"нет"| deal["Сделка в Битрикс24<br/>без задачи"]
+    human -->|"да"| dealTask["Сделка + задача<br/>+ уведомление"]
+
+    deal --> result["Ссылки на карточки<br/>в интерфейсе"]
+    dealTask --> result

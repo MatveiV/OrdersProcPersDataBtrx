@@ -13,50 +13,153 @@
       <div class="hero-badge">MVP · GigaChat API</div>
       <h1>AI-помощник по входящим заявкам</h1>
       <p class="hero-sub">
-        Вставьте текст заявки — сервис выделит ключевые данные, определит тип лида
-        и подготовит черновик ответа. Все данные синтетические.
+        Заполните форму — сервис обезличит персональные данные, выделит ключевые
+        сведения, определит тип лида и подготовит черновик ответа.
       </p>
     </header>
 
     <main class="layout">
       <section class="card input-card" aria-labelledby="input-title">
         <div class="card-head">
-          <h2 id="input-title">Текст заявки</h2>
+          <h2 id="input-title">Заявка</h2>
           <span id="charCount" class="counter">0 / 5000</span>
         </div>
 
-        <label class="sr-only" for="requestText">Текст входящей заявки</label>
-        <textarea
-          id="requestText"
-          maxlength="5000"
-          spellcheck="true"
-          placeholder="Например: Здравствуйте! Мы переезжаем в новый офис и хотим заказать столы, кресла и шкафы. Пришлите, пожалуйста, коммерческое предложение."
-        ></textarea>
+        <form id="requestForm" class="request-form" novalidate>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="name">Имя и фамилия</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                maxlength="100"
+                placeholder="Марина Соколова"
+                aria-describedby="nameError"
+              >
+              <p id="nameError" class="field-error" role="alert"></p>
+            </div>
 
-        <div class="samples" aria-label="Тестовые заявки">
-          <span class="samples-label">Тестовые заявки:</span>
-          <button type="button" class="chip" data-sample="0">Полная</button>
-          <button type="button" class="chip" data-sample="1">Неполная</button>
-          <button type="button" class="chip" data-sample="2">Конфликтная</button>
-        </div>
+            <div class="form-field">
+              <label for="phone">Телефон</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                maxlength="30"
+                placeholder="+7 999 123-45-67"
+                aria-describedby="phoneError"
+              >
+              <p id="phoneError" class="field-error" role="alert"></p>
+            </div>
 
-        <div class="samples samples-secondary" aria-label="Дополнительные тестовые заявки">
-          <span class="samples-label">Дополнительно:</span>
-          <button type="button" class="chip" data-sample="3">Идеальный плюс</button>
-          <button type="button" class="chip" data-sample="4">Идеальный минус</button>
-          <button type="button" class="chip" data-sample="5">Средний вариант</button>
-        </div>
+            <div class="form-field">
+              <label for="email">E-mail</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                maxlength="254"
+                placeholder="name@example.com"
+                aria-describedby="emailError"
+              >
+              <p id="emailError" class="field-error" role="alert"></p>
+            </div>
 
-        <div class="actions">
-          <button id="submitBtn" class="primary" type="button">
-            <span class="primary-label">Обработать</span>
-          </button>
-          <span class="hint">Ctrl + Enter — быстрый запуск</span>
-        </div>
+            <div class="form-field">
+              <label for="company">Компания</label>
+              <input
+                id="company"
+                name="company"
+                type="text"
+                autocomplete="organization"
+                maxlength="200"
+                placeholder="Название компании"
+                aria-describedby="companyError"
+              >
+              <p id="companyError" class="field-error" role="alert"></p>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="address">Адрес</label>
+            <input
+              id="address"
+              name="address"
+              type="text"
+              autocomplete="street-address"
+              maxlength="300"
+              placeholder="Москва, ул. Ленинская Слобода, 19"
+              aria-describedby="addressError"
+            >
+            <p id="addressError" class="field-error" role="alert"></p>
+          </div>
+
+          <div class="form-field">
+            <label for="requestText">
+              Текст заявки <span class="req" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              id="requestText"
+              name="text"
+              maxlength="5000"
+              spellcheck="true"
+              required
+              placeholder="Например: Здравствуйте! Мы переезжаем в новый офис и хотим заказать столы, кресла и шкафы. Пришлите, пожалуйста, коммерческое предложение."
+              aria-describedby="textError"
+            ></textarea>
+            <p id="textError" class="field-error" role="alert"></p>
+          </div>
+
+          <div class="privacy-note">
+            <span class="privacy-badge">Приватность</span>
+            <span>
+              Перед отправкой в GigaChat фамилии, телефоны, e-mail, адреса, компании,
+              ИНН, ОГРН, КПП и расчётные счета заменяются токенами. Реальные значения
+              остаются только в памяти текущего запроса. Журнал анонимизации хранит
+              только счётчики замен. При включённом чекбоксе ниже заявка сохраняется
+              в CRM Битрикс24.
+            </span>
+          </div>
+
+          <label id="b24Option" class="checkbox-field" for="b24Enabled">
+            <input id="b24Enabled" type="checkbox" checked>
+            <span>
+              <strong>Создать сделку в Битрикс24</strong>
+              <span class="checkbox-hint">
+                Контакт, компания и результат ИИ попадут в карточку сделки.
+              </span>
+            </span>
+          </label>
+
+          <div class="samples" aria-label="Тестовые заявки">
+            <span class="samples-label">Тестовые заявки:</span>
+            <button type="button" class="chip" data-sample="0">Полная</button>
+            <button type="button" class="chip" data-sample="1">Неполная</button>
+            <button type="button" class="chip" data-sample="2">Конфликтная</button>
+          </div>
+
+          <div class="samples samples-secondary" aria-label="Дополнительные тестовые заявки">
+            <span class="samples-label">Дополнительно:</span>
+            <button type="button" class="chip" data-sample="3">Идеальный плюс</button>
+            <button type="button" class="chip" data-sample="4">Идеальный минус</button>
+            <button type="button" class="chip" data-sample="5">Средний вариант</button>
+          </div>
+
+          <div class="actions">
+            <button id="submitBtn" class="primary" type="submit">
+              <span class="primary-label">Обработать</span>
+            </button>
+            <span class="hint">Ctrl + Enter — быстрый запуск. Обязательна только заявка.</span>
+          </div>
+        </form>
 
         <div id="status" class="status hidden" role="status" aria-live="polite">
           <span class="spinner" aria-hidden="true"></span>
-          <span id="statusText">Анализируем заявку…</span>
+          <span id="statusText">Обезличиваем данные и анализируем заявку…</span>
         </div>
 
         <div id="error" class="error hidden" role="alert">
@@ -75,15 +178,56 @@
             <h2 id="result-title">Результат обработки</h2>
             <p id="resultMeta" class="meta"></p>
           </div>
-          <div class="badges">
+          <button id="copyCardBtn" class="copy copy-card" type="button">Скопировать карточку</button>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat">
+            <span class="stat-label">Тип лида</span>
             <span id="leadTypeBadge" class="badge"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Решение</span>
             <span id="humanBadge" class="badge"></span>
           </div>
+          <div class="stat">
+            <span class="stat-label">Не хватает</span>
+            <span id="missingStat" class="stat-value">—</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">CRM</span>
+            <span id="crmStat" class="stat-value">—</span>
+          </div>
+        </div>
+
+        <div id="privacyBox" class="privacy-box hidden">
+          <div class="privacy-box-head">
+            <span class="privacy-badge">Обезличивание</span>
+            <strong id="privacySummary"></strong>
+          </div>
+          <details id="privacyDetails" class="privacy-details" open>
+            <summary>Что ушло в нейросеть</summary>
+            <pre id="privacyPreview" class="privacy-preview"></pre>
+          </details>
+          <div id="privacyLogRow" class="privacy-log hidden">
+            <span>Журнал без персональных данных</span>
+            <a id="privacyLogLink" class="copy" href="/api/privacy/log" download="anonymization.csv">
+              Скачать CSV
+            </a>
+          </div>
+        </div>
+
+        <div id="b24Box" class="b24-box hidden">
+          <div class="b24-box-head">
+            <span class="b24-badge">Битрикс24</span>
+            <strong id="b24Title"></strong>
+          </div>
+          <div id="b24Details" class="b24-details"></div>
         </div>
 
         <div class="field">
           <div class="label">Компания</div>
-          <div id="company" class="value"></div>
+          <div id="companyResult" class="value"></div>
         </div>
 
         <div class="field">
@@ -97,12 +241,18 @@
         </div>
 
         <div class="field">
-          <div class="label">Чего не хватает</div>
+          <div class="label label-with-action">
+            <span>Чего не хватает</span>
+            <span id="missingCount" class="count-pill hidden"></span>
+          </div>
           <ul id="missingData" class="missing"></ul>
         </div>
 
         <div class="field">
-          <div class="label">Следующий шаг</div>
+          <div class="label label-with-action">
+            <span>Следующий шаг</span>
+            <button id="copyNextBtn" class="copy" type="button">Копировать</button>
+          </div>
           <div id="nextStep" class="value"></div>
         </div>
 
@@ -122,7 +272,9 @@
     </main>
 
     <footer class="footer">
-      Учебный MVP. Секреты хранятся только в файле <code>.env</code> на сервере и не передаются в браузер.
+      Учебный MVP. В GigaChat уходят только обезличенные токены; при включённой интеграции
+      заявка сохраняется в CRM Битрикс24. Журнал анонимизации содержит только счётчики
+      и не включает персональные данные. Секреты хранятся в файле <code>.env</code> на сервере.
     </footer>
   </div>
 

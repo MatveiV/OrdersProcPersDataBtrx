@@ -10,7 +10,9 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test",
+    "b24:setup": "node scripts/b24-setup.js"
   },
   "engines": {
     "node": ">=20.12"

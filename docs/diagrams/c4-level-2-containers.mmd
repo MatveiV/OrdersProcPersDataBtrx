@@ -6,12 +6,20 @@ flowchart TB
         direction LR
         web["Веб-интерфейс<br/>HTML, CSS, JS"]
         server["Сервер Node.js<br/>HTTP API"]
+        privacy["Слой обезличивания<br/>privacy.js"]
+        bitrix["Клиент Битрикс24<br/>bitrix.js"]
+        log["Журнал анонимизации<br/>CSV, без ПДн"]
         config["Конфигурация<br/>.env"]
     end
 
     gigachat["GigaChat API"]
+    b24["Битрикс24<br/>CRM, задачи, уведомления"]
 
     manager -->|"Открывает сайт"| web
     web -->|"POST /api/analyze"| server
     server -->|"Читает настройки"| config
+    server -->|"Токены персональных данных"| privacy
+    server -->|"Счётчики замен"| log
     server -->|"OAuth и запрос"| gigachat
+    server -->|"Результат анализа"| bitrix
+    bitrix -->|"REST API входящего вебхука"| b24

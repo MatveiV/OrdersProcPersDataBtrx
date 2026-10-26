@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    actor U as Пользователь
+    participant W as Веб-интерфейс
+    participant S as Сервер Node.js
+    participant P as privacy.js
+    participant G as GigaChat API
+    participant B as Битрикс24
+    participant L as Журнал CSV
+
+    U->>W: Заполняет заявку, включает CRM
+    W->>S: POST /api/analyze {fields, b24}
+    S->>S: Валидация полей (lead-input.js)
+    S->>P: Обезличить текст заявки
+    P-->>S: Текст с токенами и карта замен
+    S->>G: Запрос анализа (только токены)
+    G-->>S: JSON: тип лида, key_data, missing_data
+    S->>P: Восстановить реальные значения
+    P-->>S: Результат с персональными данными
+
+    alt b24 = true и вебхук настроен
+        S->>B: crm.deal.list по UF_CRM_AI_REQUEST_ID
+        B-->>S: Существующая сделка или пусто
+        S->>B: crm.company.list / crm.item.add
+        S->>B: crm.duplicate.findbycomm / crm.item.add
+        S->>B: crm.item.add: сделка, UF-поля, COMMENTS
+        S->>B: crm.timeline.comment.add
+        opt needs_human = true
+            S->>B: tasks.task.add
+            S->>B: im.notify
+        end
+        B-->>S: ID сделки, контакта, компании, задачи
+    else Ошибка Битрикс24
+        B-->>S: Код ошибки
+        S->>S: warnings, meta.b24.ok = false
+    end
+
+    S->>L: appendPrivacyRecord: счётчики замен, без ПДн
+    L-->>S: logs/anonymization.csv обновлён
+
+    S-->>W: data + meta.privacy + meta.privacyLog + meta.b24
+    W-->>U: Карточка результата, ссылки на CRM и журнал CSV
